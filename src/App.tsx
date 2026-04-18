@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Editor from './components/Editor'
 import StatusBar from './components/StatusBar'
 import MenuBar from './components/MenuBar'
@@ -65,20 +65,62 @@ const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false)
     enabled: !!filePath
   })
 
+  const handleOpenFile = useCallback(async () => {
+    try {
+      const selected = await open({
+        multiple: false,
+        filters: [{
+          name: 'Text Files',
+          extensions: ['txt', 'md', 'js', 'json', 'ts', 'tsx', 'html', 'css']
+        }]
+      })
+      if (selected && !Array.isArray(selected)) {
+        const size = await invoke<number>('get_file_size', { path: selected })
+        setFileSize(size)
+        
+        const largeFile = isLargeFileUtil(size)
+        setIsLargeFile(largeFile)
+        setIsStreamingMode(largeFile)
+        
+        if (largeFile) {
+          console.log(`Loading large file: ${(size / 1024 / 1024).toFixed(2)}MB, streaming mode enabled`)
+        }
+        
+        const binaryData = await readBinaryFile(selected)
+        const encoding = detectFileEncoding(binaryData.buffer)
+        setEncoding(getEncodingDisplayName(encoding))
+        
+        let fileContent: string
+        if (encoding === 'UTF-16LE' || encoding === 'UTF-16BE') {
+          const decoder = new TextDecoder(encoding.toLowerCase())
+          fileContent = decoder.decode(binaryData)
+        } else {
+          fileContent = await readTextFile(selected)
+        }
+        
+        setContent(fileContent)
+        setFilePath(selected)
+        setIsDirty(false)
+        
+        const lineEnding = detectLineEnding(fileContent)
+        setLineEndings(getLineEndingDisplayName(lineEnding))
+      }
+    } catch (error) {
+      console.error('Failed to open file:', error)
+    }
+  }, [])
+
   // 处理文件修改提示
   useEffect(() => {
     if (fileWatchState === 'modified') {
-      // 显示对话框给用户
       const userChoice = window.confirm(
         '文件已被其他程序修改。重新加载（丢失本地更改）还是保留（覆盖外部更改）？\n\n点击"确定"重新加载，"取消"保留。'
       )
       
       if (userChoice) {
-        // 重新加载文件
         resolveModification('reload')
-        handleOpenFile() // 重新打开文件以重新加载
+        handleOpenFile()
       } else {
-        // 保留本地更改
         resolveModification('overwrite')
       }
     }
@@ -91,61 +133,6 @@ const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false)
     }
     updateCounts()
   }, [content])
-
-  const handleOpenFile = async () => {
-    try {
-      const selected = await open({
-        multiple: false,
-        filters: [{
-          name: 'Text Files',
-          extensions: ['txt', 'md', 'js', 'json', 'ts', 'tsx', 'html', 'css']
-        }]
-      })
-      if (selected && !Array.isArray(selected)) {
-        // 检测文件大小
-        const size = await invoke<number>('get_file_size', { path: selected })
-        setFileSize(size)
-        
-        const largeFile = isLargeFileUtil(size)
-        setIsLargeFile(largeFile)
-        setIsStreamingMode(largeFile)
-        
-        if (largeFile) {
-          console.log(`Loading large file: ${(size / 1024 / 1024).toFixed(2)}MB, streaming mode enabled`)
-          // 未来可以在这里实现分块加载
-        }
-        
-        // 读取二进制文件以检测编码
-        const binaryData = await readBinaryFile(selected)
-        const encoding = detectFileEncoding(binaryData.buffer)
-        setEncoding(getEncodingDisplayName(encoding))
-        
-        // 将二进制数据转换为字符串（根据检测到的编码）
-        let fileContent: string
-        if (encoding === 'UTF-16LE' || encoding === 'UTF-16BE') {
-          // 对于UTF-16，使用TextDecoder
-          const decoder = new TextDecoder(encoding.toLowerCase())
-          fileContent = decoder.decode(binaryData)
-        } else {
-          // 对于UTF-8和ASCII，直接使用TextDecoder或readTextFile
-          // 使用readTextFile，它应该能正确处理UTF-8 BOM
-          fileContent = await readTextFile(selected)
-        }
-        
-        setContent(fileContent)
-        setFilePath(selected)
-        setIsDirty(false)
-        
-        // 检测行结束符
-        const lineEnding = detectLineEnding(fileContent)
-        setLineEndings(getLineEndingDisplayName(lineEnding))
-        
-        // 文件监视由 useFileWatch 钩子自动处理
-      }
-    } catch (error) {
-      console.error('Failed to open file:', error)
-    }
-  }
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent)
