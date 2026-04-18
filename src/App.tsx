@@ -139,8 +139,14 @@ const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false)
     if (!isDirty) setIsDirty(true)
   }
 
-  const handleSave = async () => {
-    if (!filePath) return
+  const handleSave = async (path?: string) => {
+    const savePath = path || filePath
+    if (!savePath) return
+
+    if (path && path !== filePath) {
+      setFilePath(path)
+    }
+
     await triggerSave()
   }
 

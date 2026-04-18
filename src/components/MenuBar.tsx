@@ -4,7 +4,7 @@ import { writeTextFile } from '@tauri-apps/api/fs'
 
 interface MenuBarProps {
   onOpen: () => void
-  onSave: () => void
+  onSave: (path?: string) => void
 }
 
 const MenuBar: React.FC<MenuBarProps> = ({ onOpen, onSave }) => {
@@ -17,8 +17,7 @@ const MenuBar: React.FC<MenuBarProps> = ({ onOpen, onSave }) => {
         }]
       })
       if (filePath) {
-        // Save logic will be implemented
-        onSave()
+        onSave(filePath)
       }
     } catch (error) {
       console.error('Failed to save file:', error)
