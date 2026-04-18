@@ -5,9 +5,43 @@ import { writeTextFile } from '@tauri-apps/api/fs'
 interface MenuBarProps {
   onOpen: () => void
   onSave: (path?: string) => void
+  editorViewRef?: React.MutableRefObject<any>
 }
 
-const MenuBar: React.FC<MenuBarProps> = ({ onOpen, onSave }) => {
+const MenuBar: React.FC<MenuBarProps> = ({ onOpen, onSave, editorViewRef }) => {
+  const handleUndo = () => {
+    if (editorViewRef?.current) {
+      editorViewRef.current.dispatch({ undo: true })
+    }
+  }
+
+  const handleRedo = () => {
+    if (editorViewRef?.current) {
+      editorViewRef.current.dispatch({ redo: true })
+    }
+  }
+
+  const handleCut = () => {
+    document.execCommand('cut')
+  }
+
+  const handleCopy = () => {
+    document.execCommand('copy')
+  }
+
+  const handlePaste = () => {
+    document.execCommand('paste')
+  }
+
+  const handleSelectAll = () => {
+    if (editorViewRef?.current) {
+      const doc = editorViewRef.current.state.doc
+      editorViewRef.current.dispatch({
+        selection: { anchor: 0, head: doc.length }
+      })
+    }
+  }
+
   const handleSaveAs = async () => {
     try {
       const filePath = await save({
@@ -61,20 +95,20 @@ const MenuBar: React.FC<MenuBarProps> = ({ onOpen, onSave }) => {
             Edit
           </button>
           <div className="absolute hidden group-hover:block bg-gray-800 rounded shadow-lg z-10 min-w-40">
-            <button className="block w-full text-left px-4 py-2 hover:bg-gray-700 rounded-t">
+            <button onClick={handleUndo} className="block w-full text-left px-4 py-2 hover:bg-gray-700 rounded-t">
               Undo
             </button>
-            <button className="block w-full text-left px-4 py-2 hover:bg-gray-700">
+            <button onClick={handleRedo} className="block w-full text-left px-4 py-2 hover:bg-gray-700">
               Redo
             </button>
             <div className="border-t border-gray-700 my-1"></div>
-            <button className="block w-full text-left px-4 py-2 hover:bg-gray-700">
+            <button onClick={handleCut} className="block w-full text-left px-4 py-2 hover:bg-gray-700">
               Cut
             </button>
-            <button className="block w-full text-left px-4 py-2 hover:bg-gray-700">
+            <button onClick={handleCopy} className="block w-full text-left px-4 py-2 hover:bg-gray-700">
               Copy
             </button>
-            <button className="block w-full text-left px-4 py-2 hover:bg-gray-700 rounded-b">
+            <button onClick={handlePaste} className="block w-full text-left px-4 py-2 hover:bg-gray-700 rounded-b">
               Paste
             </button>
           </div>

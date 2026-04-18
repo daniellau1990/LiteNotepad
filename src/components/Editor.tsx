@@ -13,6 +13,7 @@ interface EditorProps {
   onCursorChange?: (position: { line: number; column: number }) => void
   filePath: string | null
   isLargeFile?: boolean
+  viewRef?: React.MutableRefObject<EditorView | null>
 }
 
 const Editor: React.FC<EditorProps> = ({ 
@@ -20,10 +21,11 @@ const Editor: React.FC<EditorProps> = ({
   onChange, 
   onCursorChange,
   filePath, 
-  isLargeFile = false 
+  isLargeFile = false,
+  viewRef
 }) => {
   const editorRef = useRef<HTMLDivElement>(null)
-  const viewRef = useRef<EditorView | null>(null)
+  const editorViewRef = useRef<EditorView | null>(null)
 
   useEffect(() => {
     if (!editorRef.current) return
@@ -84,16 +86,16 @@ const Editor: React.FC<EditorProps> = ({
       state,
       parent: editorRef.current
     })
-    viewRef.current = view
+    editorViewRef.current = view
 
     return () => {
       view.destroy()
-      viewRef.current = null
+      editorViewRef.current = null
     }
   }, [filePath, isLargeFile, onChange, onCursorChange])
 
   useEffect(() => {
-    const view = viewRef.current
+    const view = editorViewRef.current
     if (view) {
       const currentContent = view.state.doc.toString()
       if (currentContent !== content) {
@@ -107,6 +109,10 @@ const Editor: React.FC<EditorProps> = ({
       }
     }
   }, [content])
+
+  if (viewRef) {
+    viewRef.current = editorViewRef.current
+  }
 
   return (
     <div 

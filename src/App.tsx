@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { EditorView } from '@codemirror/view'
 import Editor from './components/Editor'
 import StatusBar from './components/StatusBar'
 import MenuBar from './components/MenuBar'
@@ -26,6 +27,53 @@ const [lineEndings, setLineEndings] = useState<string>('LF')
 const [isStreamingMode, setIsStreamingMode] = useState<boolean>(false)
 const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false)
   const [isFileWatched, setIsFileWatched] = useState<boolean>(false)
+  const editorViewRef = useRef<EditorView | null>(null)
+
+  const handleUndo = () => {
+    if (editorViewRef.current) {
+      editorViewRef.current.dispatch({ undo: true })
+    }
+  }
+
+  const handleRedo = () => {
+    if (editorViewRef.current) {
+      editorViewRef.current.dispatch({ redo: true })
+    }
+  }
+
+  const handleCut = () => {
+    document.execCommand('cut')
+  }
+
+  const handleCopy = () => {
+    document.execCommand('copy')
+  }
+
+  const handlePaste = () => {
+    document.execCommand('paste')
+  }
+
+  const handleSelectAll = () => {
+    if (editorViewRef.current) {
+      const doc = editorViewRef.current.state.doc
+      editorViewRef.current.dispatch({
+        selection: { anchor: 0, head: doc.length }
+      })
+    }
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'z') handleUndo()
+      if (e.ctrlKey && e.key === 'y') handleRedo()
+      if (e.ctrlKey && e.key === 'x') handleCut()
+      if (e.ctrlKey && e.key === 'c') handleCopy()
+      if (e.ctrlKey && e.key === 'v') handlePaste()
+      if (e.ctrlKey && e.key === 'a') handleSelectAll()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   // 自动保存钩子
   const {
@@ -169,7 +217,7 @@ const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false)
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 text-gray-900">
-      <MenuBar onOpen={handleOpenFile} onSave={handleSave} />
+      <MenuBar onOpen={handleOpenFile} onSave={handleSave} editorViewRef={editorViewRef} />
       <div className="flex-1 overflow-hidden">
         <Editor 
           content={content} 
@@ -177,6 +225,7 @@ const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false)
           onCursorChange={setCursorPosition}
           filePath={filePath}
           isLargeFile={isLargeFile}
+          viewRef={editorViewRef}
         />
       </div>
       <StatusBar 
