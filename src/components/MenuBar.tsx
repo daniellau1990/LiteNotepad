@@ -108,8 +108,11 @@ const MenuBar: React.FC<MenuBarProps> = ({ onOpen, onSave, editorViewRef }) => {
             <button onClick={handleCopy} className="block w-full text-left px-4 py-2 hover:bg-gray-700">
               Copy
             </button>
-            <button onClick={handlePaste} className="block w-full text-left px-4 py-2 hover:bg-gray-700 rounded-b">
+            <button onClick={handlePaste} className="block w-full text-left px-4 py-2 hover:bg-gray-700">
               Paste
+            </button>
+            <button onClick={handleSelectAll} className="block w-full text-left px-4 py-2 hover:bg-gray-700 rounded-b">
+              Select All
             </button>
           </div>
         </div>
