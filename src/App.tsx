@@ -62,6 +62,24 @@ const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false)
     }
   }
 
+  const wrapSelection = (wrapper: string) => {
+    const view = editorViewRef.current
+    if (!view) return
+
+    const { from, to } = view.state.selection.main
+    const selectedText = view.state.doc.sliceString(from, to)
+
+    const newText = wrapper + selectedText + wrapper
+    view.dispatch({
+      changes: { from, to, insert: newText },
+      selection: { anchor: from + wrapper.length, head: to + wrapper.length }
+    })
+    view.focus()
+  }
+
+  const handleBold = () => wrapSelection('**')
+  const handleItalic = () => wrapSelection('*')
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === 'z') handleUndo()
@@ -70,6 +88,8 @@ const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false)
       if (e.ctrlKey && e.key === 'c') handleCopy()
       if (e.ctrlKey && e.key === 'v') handlePaste()
       if (e.ctrlKey && e.key === 'a') handleSelectAll()
+      if (e.ctrlKey && e.key === 'b') { e.preventDefault(); handleBold() }
+      if (e.ctrlKey && e.key === 'i') { e.preventDefault(); handleItalic() }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)

@@ -42,6 +42,24 @@ const MenuBar: React.FC<MenuBarProps> = ({ onOpen, onSave, editorViewRef }) => {
     }
   }
 
+  const wrapSelection = (wrapper: string) => {
+    const view = editorViewRef?.current
+    if (!view) return
+
+    const { from, to } = view.state.selection.main
+    const selectedText = view.state.doc.sliceString(from, to)
+
+    const newText = wrapper + selectedText + wrapper
+    view.dispatch({
+      changes: { from, to, insert: newText },
+      selection: { anchor: from + wrapper.length, head: to + wrapper.length }
+    })
+    view.focus()
+  }
+
+  const handleBold = () => wrapSelection('**')
+  const handleItalic = () => wrapSelection('*')
+
   const handleSaveAs = async () => {
     try {
       const filePath = await save({
@@ -113,6 +131,13 @@ const MenuBar: React.FC<MenuBarProps> = ({ onOpen, onSave, editorViewRef }) => {
             </button>
             <button onClick={handleSelectAll} className="block w-full text-left px-4 py-2 hover:bg-gray-700 rounded-b">
               Select All
+            </button>
+            <div className="border-t border-gray-700 my-1"></div>
+            <button onClick={handleBold} className="block w-full text-left px-4 py-2 hover:bg-gray-700">
+              <strong>Bold</strong> (Ctrl+B)
+            </button>
+            <button onClick={handleItalic} className="block w-full text-left px-4 py-2 hover:bg-gray-700 rounded-b">
+              <em>Italic</em> (Ctrl+I)
             </button>
           </div>
         </div>
