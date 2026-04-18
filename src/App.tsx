@@ -254,13 +254,6 @@ const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false)
         lineCount={lineCount}
         charCount={charCount}
         cursorPosition={cursorPosition || undefined}
-        fileSize={fileSize}
-        encoding={encoding}
-        lineEndings={lineEndings}
-        autoSaveState={autoSaveState}
-        lastSavedTime={lastSavedTime}
-        fileWatchState={fileWatchState}
-        isLargeFileMode={isLargeFile}
       />
     </div>
   )
