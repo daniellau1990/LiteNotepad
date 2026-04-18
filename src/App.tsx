@@ -147,14 +147,19 @@ const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false)
   useEffect(() => {
     const unsubscribe = appWindow.onCloseRequested(async (event) => {
       if (isDirty) {
-        // Implement save confirmation dialog
         event.preventDefault()
+        const userChoice = window.confirm(
+          '有未保存的更改。保存后关闭？\n\n点击"确定"保存，"取消"放弃更改。'
+        )
+        if (userChoice) {
+          await triggerSave()
+          setIsDirty(false)
+        }
+        await appWindow.close()
       }
     })
-    return () => {
-      unsubscribe.then(fn => fn())
-    }
-  }, [isDirty])
+    return () => { unsubscribe.then(fn => fn()) }
+  }, [isDirty, filePath, triggerSave])
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 text-gray-900">
