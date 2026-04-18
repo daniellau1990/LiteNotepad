@@ -3,6 +3,7 @@ import { EditorView } from '@codemirror/view'
 import Editor from './components/Editor'
 import StatusBar from './components/StatusBar'
 import MenuBar from './components/MenuBar'
+import FormattingToolbar from './components/FormattingToolbar'
 import { readTextFile, readBinaryFile } from '@tauri-apps/api/fs'
 import { open } from '@tauri-apps/api/dialog'
 import { appWindow } from '@tauri-apps/api/window'
@@ -238,6 +239,7 @@ const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false)
   return (
     <div className="flex flex-col h-screen bg-gray-50 text-gray-900">
       <MenuBar onOpen={handleOpenFile} onSave={handleSave} editorViewRef={editorViewRef} />
+      <FormattingToolbar editorViewRef={editorViewRef} />
       <div className="flex-1 overflow-hidden">
         <Editor 
           content={content} 
