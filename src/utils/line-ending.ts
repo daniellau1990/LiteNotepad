@@ -10,45 +10,19 @@ export type LineEnding = 'CRLF' | 'LF' | 'CR' | 'MIXED' | 'UNKNOWN'
  * @returns 行结束符类型
  */
 export function detectLineEnding(text: string): LineEnding {
-  let crlfCount = 0
-  let lfCount = 0
-  let crCount = 0
-  
-  for (let i = 0; i < text.length - 1; i++) {
-    if (text[i] === '\r' && text[i + 1] === '\n') {
-      crlfCount++
-      i++ // Skip the next character
-    } else if (text[i] === '\n') {
-      lfCount++
-    } else if (text[i] === '\r') {
-      crCount++
-    }
-  }
-  
-  // Check last character
-  if (text.length > 0) {
-    const lastChar = text[text.length - 1]
-    if (lastChar === '\n') lfCount++
-    if (lastChar === '\r') crCount++
-  }
-  
-  const total = crlfCount + lfCount + crCount
-  if (total === 0) return 'UNKNOWN'
-  
-  const counts = { crlf: crlfCount, lf: lfCount, cr: crCount }
-  const max = Math.max(crlfCount, lfCount, crCount)
-  
-  // Check for mixed line endings
-  let types = 0
-  if (crlfCount > 0) types++
-  if (lfCount > 0) types++
-  if (crCount > 0) types++
-  
-  if (types > 1) return 'MIXED'
-  
-  if (crlfCount === max) return 'CRLF'
-  if (lfCount === max) return 'LF'
-  return 'CR'
+  const crlfCount = (text.match(/\r\n/g) || []).length
+  const lfCount = (text.match(/\n/g) || []).length
+  const crCount = (text.match(/\r/g) || []).length
+
+  // 计算纯LF和纯CR的数量（排除CRLF中的字符）
+  const pureLf = lfCount - crlfCount
+  const pureCr = crCount - crlfCount
+
+  if (crlfCount > 0 && pureLf === 0 && pureCr === 0) return 'CRLF'
+  if (pureLf > 0 && crlfCount === 0 && pureCr === 0) return 'LF'
+  if (pureCr > 0 && crlfCount === 0 && pureLf === 0) return 'CR'
+  if (crlfCount > 0 || pureLf > 0 || pureCr > 0) return 'MIXED'
+  return 'UNKNOWN'
 }
 
 /**

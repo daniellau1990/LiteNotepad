@@ -40,14 +40,14 @@ describe('useAutoSave', () => {
       ({ content }) => useAutoSave(content, { onSave, saveInterval: 1000 }),
       { initialProps: { content: 'initial' } }
     )
-    
+
     rerender({ content: 'updated' })
     expect(result.current.state).toBe('unsaved')
-    
-    act(() => {
-      vi.advanceTimersByTime(1000)
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000)
     })
-    
+
     expect(onSave).toHaveBeenCalledWith('updated')
     expect(result.current.state).toBe('saved')
   })

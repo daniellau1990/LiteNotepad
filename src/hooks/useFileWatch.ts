@@ -29,32 +29,34 @@ export function useFileWatch(
   const contentRef = useRef(content)
   const filePathRef = useRef(filePath)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const lastModifiedRef = useRef<number | null>(null)
 
   // Check file modification time
   const checkFile = useCallback(async () => {
-    if (!filePath) return
+    if (!filePathRef.current) return
 
     try {
       // 注意：需要先在Tauri后端实现 get_file_modified_time 命令
-      const modifiedTime = await invoke<number>('get_file_modified_time', { 
-        path: filePath 
+      const modifiedTime = await invoke<number>('get_file_modified_time', {
+        path: filePathRef.current
       })
-      
-      if (lastModified === null) {
+
+      if (lastModifiedRef.current === null) {
+        lastModifiedRef.current = modifiedTime
         setLastModified(modifiedTime)
         setState('watching')
-      } else if (modifiedTime > lastModified) {
+      } else if (modifiedTime > lastModifiedRef.current) {
         setState('modified')
       } else {
         setState('synced')
       }
-      
+
       setError(null)
     } catch (err) {
       setState('error')
       setError(err instanceof Error ? err.message : 'Watch failed')
     }
-  }, [filePath, lastModified])
+  }, [])
 
   // Update content ref when content changes
   useEffect(() => {

@@ -4,8 +4,8 @@
     "version": "0.1.0"
   },
   "build": {
-    "frontendDist": "../dist",
-    "devUrl": "http://localhost:1420",
+    "devPath": "http://localhost:1420",
+    "distDir": "../dist",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
   },
@@ -20,8 +20,7 @@
         "removeDir": false,
         "removeFile": false,
         "renameFile": false,
-        "exists": false,
-        "metadata": true
+        "exists": false
       },
       "dialog": {
         "open": true,
@@ -39,8 +38,7 @@
         "unmaximize": false,
         "unminimize": false,
         "startDragging": false
-      },
-      "updater": true
+      }
     },
     "bundle": {
       "active": true,

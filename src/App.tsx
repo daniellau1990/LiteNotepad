@@ -26,8 +26,6 @@ function App() {
   const [encoding, setEncoding] = useState<string>('UTF-8')
 const [lineEndings, setLineEndings] = useState<string>('LF')
 const [isStreamingMode, setIsStreamingMode] = useState<boolean>(false)
-const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false)
-  const [isFileWatched, setIsFileWatched] = useState<boolean>(false)
   const editorViewRef = useRef<EditorView | null>(null)
 
   const handleUndo = () => {
@@ -250,12 +248,18 @@ const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false)
           viewRef={editorViewRef}
         />
       </div>
-      <StatusBar 
+      <StatusBar
         filePath={filePath}
         isDirty={isDirty}
         lineCount={lineCount}
         charCount={charCount}
         cursorPosition={cursorPosition || undefined}
+        fileSize={fileSize}
+        encoding={encoding}
+        lineEndings={lineEndings}
+        autoSaveState={autoSaveState}
+        fileWatchState={fileWatchState}
+        isLargeFileMode={isLargeFile}
       />
     </div>
   )

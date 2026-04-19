@@ -60,14 +60,16 @@ export function detectEncoding(fileContent: string): string {
  * @returns 行结束符类型：'LF' | 'CRLF' | 'CR' | 'Mixed'
  */
 export function detectLineEndings(fileContent: string): 'LF' | 'CRLF' | 'CR' | 'Mixed' {
+  if (!fileContent) return 'LF' // 空内容默认返回LF
+
   const lfCount = (fileContent.match(/\n/g) || []).length
   const crCount = (fileContent.match(/\r/g) || []).length
   const crlfCount = (fileContent.match(/\r\n/g) || []).length
-  
+
   // 计算纯LF和纯CR的数量
   const pureLf = lfCount - crlfCount
   const pureCr = crCount - crlfCount
-  
+
   if (crlfCount > 0 && pureLf === 0 && pureCr === 0) return 'CRLF'
   if (pureLf > 0 && crlfCount === 0 && pureCr === 0) return 'LF'
   if (pureCr > 0 && crlfCount === 0 && pureLf === 0) return 'CR'
