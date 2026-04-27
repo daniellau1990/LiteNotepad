@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiteNotepad</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <div id="menubar">
+            <span class="menu-item" data-menu="file">文件
+                <div class="menu-dropdown">
+                    <div onclick="openFile()">打开...</div>
+                    <div onclick="saveFile()">保存</div>
+                    <div onclick="saveFileAs()">另存为...</div>
+                    <hr>
+                    <div onclick="getCurrentWindow().close()">退出</div>
+                </div>
+            </span>
+            <span class="menu-item" data-menu="edit">编辑
+                <div class="menu-dropdown">
+                    <div onclick="document.execCommand('undo')">撤销</div>
+                    <div onclick="document.execCommand('redo')">重做</div>
+                    <hr>
+                    <div onclick="document.execCommand('cut')">剪切</div>
+                    <div onclick="document.execCommand('copy')">复制</div>
+                    <div onclick="document.execCommand('paste')">粘贴</div>
+                    <div onclick="selectAll()">全选</div>
+                </div>
+            </span>
+            <span class="menu-item" data-menu="format">格式
+                <div class="menu-dropdown">
+                    <div onclick="wrapSelection('**')"><b>粗体</b> (Ctrl+B)</div>
+                    <div onclick="wrapSelection('*')"><i>斜体</i> (Ctrl+I)</div>
+                </div>
+            </span>
+            <span class="menu-item" data-menu="help">帮助
+                <div class="menu-dropdown">
+                    <div onclick="alert('LiteNotepad v0.1.0\n轻量级跨平台记事本')">关于</div>
+                </div>
+            </span>
+        </div>
+        <div id="toolbar">
+            <button id="btn-bold" title="粗体 (Ctrl+B)"><b>B</b></button>
+            <button id="btn-italic" title="斜体 (Ctrl+I)"><i>I</i></button>
+        </div>
+        <div id="editor-container">
+            <div id="line-numbers"></div>
+            <div id="editor-wrapper">
+                <textarea id="editor" spellcheck="false"></textarea>
+                <pre id="highlight-layer"></pre>
+            </div>
+        </div>
+        <div id="statusbar">
+            <span id="filename">未命名</span>
+            <span id="info"></span>
+            <span id="autosave-status"></span>
+        </div>
+    </div>
+    <script src="editor.js" type="module"></script>
+</body>
+</html>
