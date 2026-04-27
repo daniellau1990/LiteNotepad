@@ -1,130 +1,60 @@
+# LiteNotepad 项目开发规范
 
-# LiteEdit - 轻量级文本编辑器
+## 版本管理
 
-## 项目概述
-一个极简、快速、轻量的本地文本编辑器，旨在作为系统默认 .txt 文件处理程序的替代品。
-- **核心目标**: 启动 < 1秒，内存占用 < 30MB (Tauri 后台 + 前端)。
-- **技术栈**: Tauri (Rust 后端) + React (TypeScript) + CodeMirror 6。
+### 版本号规则
+- 使用语义化版本号，格式：`vMAJOR.MINOR.PATCH`
+  - MAJOR：不兼容的重大重构
+  - MINOR：新增功能（向下兼容）
+  - PATCH：bug 修复
 
-## 目录结构
+### 发布流程
+1. 代码修改完成并测试通过后
+2. 创建新版本标签：
+   ```bash
+   git tag -a v0.x.x -m "版本描述"
+   ```
+3. 推送标签：
+   ```bash
+   git push origin v0.x.x
+   ```
+4. GitHub Actions 检测到标签推送，自动构建并创建 Release
 
-src/ # 前端源码 (React)
-├── components/ # UI组件 (菜单栏、状态栏等)
-├── editor/ # CodeMirror 封装与配置
-├── hooks/ # 自定义 React Hooks (如 useAutoSave)
-└── lib/ # Tauri API 调用封装
-src-tauri/ # Tauri 后端 (Rust)
-├── src/ # 后端逻辑 (文件读写、系统菜单)
-└── Cargo.toml # Rust 依赖清单
-public/ # 静态资源
+### GitHub Actions 发布配置
+- workflow 文件：`.github/workflows/build.yml`
+- 每次推送到 master 分支自动构建
+- 每次推送新标签自动创建 Release 并上传 .exe 文件
 
+## 开发环境
 
-
-## 代码规范 (必须严格遵守)
-- **TypeScript**: 开启严格模式 (`strict: true`)，所有函数必须显式定义参数类型和返回值。
-- **命名约定**:
-  - React 组件: `PascalCase` (如 `EditorArea.tsx`)
-  - Hooks: `use` 前缀 + `camelCase` (如 `useAutoSave.ts`)
-  - Rust 函数/变量: `snake_case`
-- **样式**: 使用 CSS Modules 或 Tailwind CSS，避免全局样式污染。
-- **注释**: 对关键性能优化点、Tauri 命令调用处必须添加注释。
-
-## 开发流程与关键约定
-### 自动保存逻辑 (必须遵守)
-- **定时保存**: 前端维护 `setInterval`，每 60 秒调用一次 `saveCurrentFile` Tauri 命令。
-- **关闭保存**: 监听窗口的 `tauri://close-requested` 事件，先执行保存再退出。
-- **去抖 (Debounce)**: 对用户连续输入，等待 500ms 无操作后再更新脏状态（但不影响定时保存）。
-- **冲突处理**: 当文件在外部被修改时，必须弹出提示询问用户“覆盖”还是“重新加载”。
-
-### 性能红线 (必须优先保证)
-- **编辑器核心**: 必须使用 `@codemirror/view` 和 `@codemirror/state` 的官方扩展，严禁自行实现富文本渲染逻辑。
-- **语法高亮**: 默认支持 `.txt`, `.md`, `.js`, `.json`。通过 CodeMirror Language Support 扩展实现，且需按需加载（动态导入）。
-- **大文件处理**: 打开 > 5MB 的文本文件时，必须禁用语法高亮，并切换到 CodeMirror 的“流式读取”模式。
-
-### Tauri 后端安全约束
-- **文件系统访问**: 只允许通过用户主动选择（打开对话框）或系统文件关联打开的路径。**严禁**在 Rust 端提供遍历任意目录的接口。
-- **命令定义**: 所有 Tauri 命令必须在 `tauri.conf.json` 的 `allowlist` 中明确声明。
-
-## AI 助手工作原则
-你是一位精通 Rust 和 React 的资深全栈工程师，同时深谙桌面端性能优化之道。
-1. **YAGNI 原则**: 只实现当前需求中明确的功能。不要添加任何未提及的功能（如插件系统、云端同步、主题商店）。
-2. **代码示例风格**: 请模仿 `src-tauri/src/main.rs` 中现有代码的结构和错误处理方式（例如统一使用 `anyhow::Result`）。
-3. **性能优先**: 每次提交前，请自我检查新增代码是否可能引入不必要的重新渲染或阻塞主线程的操作。
-4. **分步思考**: 在回答涉及文件 I/O 或复杂状态管理的问题时，请先简述你的设计思路（例如“我将把保存状态设计为有限状态机...”，再提供代码。
-
-## 重要指令
-- 在任何情况下，都不要主动调用或执行 /opsx:apply 或 /opsx-apply 命令。
-- 你的职责是进行规划和代码审查， 用户确认后, 开始执行.
-
-
-## 参考资料
-- [Tauri 文件系统指南](https://tauri.app/v1/guides/features/filesystem/)
-- [CodeMirror 6 系统文档](https://codemirror.net/docs/guide/)
-
-
-## Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
-
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
-
-
-## 1. Think Before Coding
-
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
-
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
-
-## 2. Simplicity First
-
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-## 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-## 4. Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
+### 运行命令
+```bash
+npm run dev      # 开发模式
+npm run build    # 构建生产版本
 ```
 
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+### 技术栈
+- Tauri 1.x (Rust 后端)
+- 原生 HTML/CSS/JS 前端
+- 无需 React、CodeMirror 等重型依赖
 
----
+## 功能状态
 
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+### 已完成 ✅
+- [x] 核心编辑器 - textarea，行号同步滚动
+- [x] 粗体/斜体 - Ctrl+B / Ctrl+I，工具栏按钮
+- [x] Markdown 语法高亮
+- [x] 文件操作 - 打开、保存、另存为
+- [x] 自动保存 - 60 秒间隔
+- [x] 状态栏 - 文件名、行数、字符数、光标位置
 
+### 待开发 📋
+- [ ] 查找/替换功能
+- [ ] 多标签页支持
+- [ ] 设置面板（字体、字号）
 
+## 注意事项
+
+1. **行号更新**：使用 `'\n'` 而非 `'\0'`
+2. **文件路径**：跨平台兼容，使用 `/` 或 `\` 分割符处理
+3. **前端 API**：使用 `@tauri-apps/api` v1.x 版本
