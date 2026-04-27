@@ -30,6 +30,12 @@ LiteNotepad 是一个极简、轻量的跨平台记事本替代品，基于 Taur
 - [x] **菜单栏** - File / Edit / Format / Help
 - [x] **窗口关闭保存** - 关闭前提示保存
 
+## 待开发功能 📋
+
+- [ ] 查找/替换功能
+- [ ] 多标签页支持
+- [ ] 设置面板（字体、字号）
+
 ## 目录结构
 
 ```
@@ -44,7 +50,7 @@ src-tauri/
 src/
 ├── index.html           # 主页面
 ├── style.css            # 样式
-└── editor.js           # 编辑器逻辑
+└── editor.js            # 编辑器逻辑
 ```
 
 ## 运行命令
@@ -60,6 +66,34 @@ npm run dev
 npm run build:win
 ```
 
-## 开发参考
+## 版本管理
 
-详见: `docs/plans/2026-04-19-lite-notepad.md`
+### 版本号规则
+- 使用语义化版本号，格式：`vMAJOR.MINOR.PATCH`
+  - MAJOR：不兼容的重大重构
+  - MINOR：新增功能（向下兼容）
+  - PATCH：bug 修复
+
+### 发布流程
+1. 代码修改完成并测试通过后
+2. 创建新版本标签：
+   ```bash
+   git tag -a v0.x.x -m "版本描述"
+   ```
+3. 推送标签：
+   ```bash
+   git push origin v0.x.x
+   ```
+4. GitHub Actions 检测到标签推送，自动构建并创建 Release
+
+### GitHub Actions 发布配置
+- workflow 文件：`.github/workflows/build.yml`
+- 每次推送到 master 分支自动构建
+- 每次推送新标签自动创建 Release 并上传 .exe 文件
+
+## 注意事项
+
+1. **Tauri API 访问**：确保 `tauri.conf.json` 中 `withGlobalTauri: true`
+2. **行号更新**：使用 `'\n'` 而非 `'\0'`
+3. **文件路径**：跨平台兼容，使用 `/` 或 `\` 分割符处理
+4. **前端 API**：使用 `@tauri-apps/api` v1.x 版本
